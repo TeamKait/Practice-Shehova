@@ -12,6 +12,9 @@ EXCEL_PATH = "AI/data.xlsx"
 @st.cache_data
 def load_data():
     df = pd.read_excel(EXCEL_PATH, sheet_name=0)
+    # если нет столбца Date, пробуем первый столбец
+    if 'Date' not in df.columns:
+        df.columns = ['Date'] + list(df.columns[1:])
     df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
     df.set_index('Date', inplace=True)
     return df
@@ -124,16 +127,18 @@ st.markdown(
     **SMA_21**: средняя цена закрытия за 21 день."""
 )
 with st.form("form_pred"):
-    open = st.number_input("Open: цена открытия", min_value=0.0, step=0.01, key="o2")
-    high = st.number_input("High: макс. цена", min_value=0.0, step=0.01, key="h2")
-    low = st.number_input("Low: мин. цена", min_value=0.0, step=0.01, key="l2")
-    close = st.number_input("Close: цена закрытия", min_value=0.0, step=0.01, key="c2")
-    volume = st.number_input("Volume: объём торгов", min_value=0, step=1, key="v2")
-    sma7 = st.number_input("SMA_7: средняя цена закрытия за 7 дней", min_value=0.0, step=0.01, key="s71")
-    sma21 = st.number_input("SMA_21: средняя цена закрытия за 21 день", min_value=0.0, step=0.01, key="s212")
+    o = st.number_input("Open: цена открытия", min_value=0.0, step=0.01, key="o2")
+    h = st.number_input("High: макс. цена", min_value=0.0, step=0.01, key="h2")
+    l = st.number_input("Low: мин. цена", min_value=0.0, step=0.01, key="l2")
+    c = st.number_input("Close: цена закрытия", min_value=0.0, step=0.01, key="c2")
+    v = st.number_input("Volume: объём торгов", min_value=0, step=1, key="v2")
+    s7 = st.number_input("SMA_7: скользящая средняя за 7 дней", min_value=0.0, step=0.01, key="s71")
+    s21 = st.number_input("SMA_21: скользящая средняя за 21 день", min_value=0.0, step=0.01, key="s212")
     pred_btn = st.form_submit_button("Сделать прогноз")
     if pred_btn:
-        X_new = np.array([[open, high, low, close, volume, sma7, sma21]])
+        X_new = np.array([[o, h, l, c, v, s7, s21]])
         Xs = st.session_state.scaler.transform(X_new)
         p = st.session_state.model.predict(Xs)[0]
         st.success(f"Прогноз цены закрытия на следующий день: **{p:.2f}**")
+
+# Конец приложения
